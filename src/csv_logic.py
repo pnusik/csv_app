@@ -41,7 +41,7 @@ def get_badcodes(filepath: str) -> set[str]:
                 bad_codes.add(c_line)
     return bad_codes
 
-def stream_codes_as_csv(filename, codes_stream: Iterator[str]):
+def stream_codes_as_csv(filename: str, codes_stream: Iterator[str]):
     """Записывает коды из генератора в CSV-файл."""
     with open(filename, "w", encoding="utf-8-sig") as file:
         file.writelines(f"{code}\n" for code in codes_stream if code)

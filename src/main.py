@@ -27,14 +27,8 @@ def main():
     csv_iterator = get_csv_codes_iterator(good_codes_path, bad_codes=badcodes)
     it1, it2 = itertools.tee(csv_iterator, 2)
 
-    # Создаем 2 задачи на разных процессах для скорости
-    p1, p2 = mp.Process(target=stream_codes_as_csv, args=["csv_codes_full.csv", it1]), mp.Process(target=stream_codes_as_exel, args=["exel_codes_short.xlsx", it2])
-
-    p1.start()
-    p2.start()
-
-    p1.join()
-    p2.join()
+    stream_codes_as_csv("csv_codes_full.csv", it1)
+    stream_codes_as_exel("exel_codes_short.xlsx", it2)
 
     input("Программа завершена.")
 
