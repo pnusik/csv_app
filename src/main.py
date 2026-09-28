@@ -7,33 +7,34 @@ from file_select import select_file
 
 
 def main():
-    mode = None
-    while True:
-        print("Выберете режим:\n1.Создание кодов без исключений.\n2.С исключениями(браком)")
-        mode = int(input())
-        if mode not in [1, 2]:
-            print("Неизвестный режим")
-        else: break
+    try:
+        mode = None
+        while True:
+            print("Выберете режим:\n1.Создание кодов без исключений.\n2.С исключениями(браком)")
+            mode = int(input())
+            if mode not in [1, 2]:
+                print("Неизвестный режим")
+            else: break
 
-    print("Выбор файла от медузы")
-    good_codes_path = select_file()
+        print("Выбор файла от медузы")
+        good_codes_path = select_file()
 
-    badcodes = None
-    if mode == 2:
-        print("Укажите файл с бракованными кодами")
-        badcodes_path = select_file()
-        badcodes = get_badcodes(badcodes_path)
+        badcodes = None
+        if mode == 2:
+            print("Укажите файл с бракованными кодами")
+            badcodes_path = select_file()
+            badcodes = get_badcodes(badcodes_path)
 
-    csv_iterator = get_csv_codes_iterator(good_codes_path, bad_codes=badcodes)
-    it1, it2 = itertools.tee(csv_iterator, 2)
+        csv_iterator = get_csv_codes_iterator(good_codes_path, bad_codes=badcodes)
+        it1, it2 = itertools.tee(csv_iterator, 2)
 
-    stream_codes_as_csv("csv_codes_full.csv", it1)
-    stream_codes_as_exel("exel_codes_short.xlsx", it2)
+        stream_codes_as_csv("csv_codes_full.csv", it1)
+        stream_codes_as_exel("exel_codes_short.xlsx", it2)
 
-    input("Программа завершена.")
-
-
-
+    except Exception as e:  # noqa: BLE001
+        print(f"\033[31m\nОШИБКА!!!\n{e}\033[0m")
+    finally:
+        input("Программа завершена.")
 
 
 if __name__ == "__main__":

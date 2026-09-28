@@ -14,6 +14,9 @@ def get_csv_codes_iterator(
     with open(filepath, mode="r", encoding="utf-8-sig", newline="") as file:
         reader = csv.DictReader(file, delimiter=",")
 
+        if not reader.fieldnames or fieldname not in reader.fieldnames:
+            raise ValueError(f"В файле {filepath} нет поля '{fieldname}'")
+
         for row in reader:
             code = row.get(fieldname)
             if not code:
