@@ -25,11 +25,11 @@ def main():
             badcodes_path = select_file()
             badcodes = get_badcodes(badcodes_path)
 
-        csv_iterator = get_csv_codes_iterator(good_codes_path, bad_codes=badcodes)
+        shift, csv_iterator = get_csv_codes_iterator(good_codes_path, bad_codes=badcodes)
         it1, it2 = itertools.tee(csv_iterator, 2)
 
-        stream_codes_as_csv("csv_codes_full.csv", it1)
-        stream_codes_as_exel("exel_codes_short.xlsx", it2)
+        stream_codes_as_csv(f"shift_{shift}_csv_codes_full.csv", it1)
+        stream_codes_as_exel(f"shift_{shift}_exel_codes_short.xlsx", it2)
 
     except Exception as e:  # noqa: BLE001
         print(f"\033[31m\nОШИБКА!!!\n{e}\033[0m")

@@ -7,7 +7,7 @@ from openpyxl.cell.cell import TYPE_STRING
 
 def stream_codes_as_exel(filename: str, codes_stream: Iterable[str]) -> None:
     wb = Workbook(write_only=True)
-    ws = wb.create_sheet(title="Codes")
+    ws = wb.create_sheet(title="рез")
 
 
     for code in codes_stream:
