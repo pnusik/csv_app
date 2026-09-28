@@ -29,6 +29,3 @@ def select_file() -> str:
         raise TypeError("Файл не выбран")
 
     return str(path[0]) # type: ignore
-
-
-print(select_file())
