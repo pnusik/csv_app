@@ -31,7 +31,17 @@ def get_csv_codes_iterator(
             if code and code not in bad_codes:
                 yield code
 
-def write_codes_via_itrator(filename, codes_stream: Iterator[str]):
+def get_badcodes(filepath: str) -> set[str]:
+    bad_codes = set()
+    with open(filepath, encoding="utf-8-sig") as file:
+        for line in file:
+            c_line = line.strip()
+
+            if c_line:
+                bad_codes.add(c_line)
+    return bad_codes
+
+def stream_codes_as_csv(filename, codes_stream: Iterator[str]):
     """Записывает коды из генератора в CSV-файл."""
     with open(filename, "w", encoding="utf-8-sig") as file:
         file.writelines(f"{code}\n" for code in codes_stream if code)
