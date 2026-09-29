@@ -1,7 +1,6 @@
 import os
 import sys
-
-from plyer import filechooser
+from tkinter import Tk, filedialog
 
 
 class FileNotSelectedError(Exception):
@@ -16,16 +15,19 @@ def select_file() -> str:
         # Если запускается обычный .py файл
         current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    if not callable(filechooser.open_file):
-        raise TypeError("Выбор файла не доступен, plyer не заработал ._.")
 
-    path = filechooser.open_file(
+    root = Tk()
+    root.withdraw()
+    # Поднимаем диалоговое окно поверх всех остальных окон
+    root.attributes("-topmost", True)
+
+    path = filedialog.askopenfilename(
         title="Выберите файл",
-        path=current_dir,
-        filters=[("csv файл", "*.csv")],
+        initialdir=current_dir,
+        filetypes=[("CSV файлы", "*.csv"), ("Все файлы", "*.*")],
     )
-
+    root.destroy()
     if not path:
-        raise TypeError("Файл не выбран")
+        raise FileNotSelectedError("Файл не был выбран.")
 
-    return str(path[0]) # type: ignore
+    return os.path.normpath(path)
