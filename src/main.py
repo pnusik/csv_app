@@ -8,8 +8,8 @@ def main():
         mode = None
         while True:
             print("Выберете режим:\n1.Создание кодов без исключений.\n2.С исключениями(браком)")
-            mode = int(input())
-            if mode not in [1, 2]:
+            mode = input().strip()
+            if mode not in ["1", "2"]:
                 print("Неизвестный режим")
             else: break
 
@@ -17,7 +17,7 @@ def main():
         good_codes_path = select_file()
 
         badcodes = None
-        if mode == 2:
+        if mode == "2":
             print("Укажите файл с бракованными кодами")
             badcodes_path = select_file()
             badcodes = get_badcodes(badcodes_path)

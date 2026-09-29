@@ -17,6 +17,7 @@ def get_csv_codes_iterator(
 
     bad_codes = bad_codes or set()
 
+    
     file = open(filepath, mode="r", encoding="utf-8-sig", newline="")
     reader = csv.DictReader(file, delimiter=",")
 
@@ -35,23 +36,26 @@ def get_csv_codes_iterator(
         file.close()
         raise ValueError(f"В файле '{filepath}' нет данных.")
 
-    shift = first_row.get(fieldname_shift, "-1")
+    shift = first_row.get(fieldname_shift, "None_shift")
 
     def _create_iterator() -> Iterator[str]:
         # Т.к мы уже прокрутили 1 итерацию когда доставали смену, из нее же надо достать код
-        if first_code := first_row.get(fieldname):
-            clean = clean_code(first_code)
-
-            if clean and clean not in bad_codes:
-                yield clean
-
-        # Работа с другими кодами
-        for row in reader:
-            if code := row.get(fieldname, None):
-                clean = clean_code(code)
+        try:
+            if first_code := first_row.get(fieldname):
+                clean = clean_code(first_code)
 
                 if clean and clean not in bad_codes:
                     yield clean
+
+            # Работа с другими кодами
+            for row in reader:
+                if code := row.get(fieldname, None):
+                    clean = clean_code(code)
+
+                    if clean and clean not in bad_codes:
+                        yield clean
+        finally:
+            file.close()
 
     return shift, _create_iterator()
 
@@ -62,11 +66,11 @@ def get_csv_codes_iterator(
 def get_badcodes(filepath: str) -> set[str]:
     bad_codes = set()
     with open(filepath, encoding="utf-8-sig") as file:
-        for line in file:
-            c_line = line.strip()
+        for code in file:
+            c_code = clean_code(code)
 
-            if c_line:
-                bad_codes.add(c_line)
+            if c_code:
+                bad_codes.add(c_code)
     return bad_codes
 
 class stream_codes_as_csv:

@@ -23,5 +23,9 @@ class stream_codes_as_exel:
         self.ws.append([cell])
 
     def __exit__(self, exc_type, exc, tb):
-        self.wb.save(self.filename)
+        try:
+            if exc_type is None:
+                self.wb.save(self.filename)
+        finally:
+            self.wb.close()
 
