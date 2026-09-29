@@ -1,6 +1,3 @@
-import itertools
-import multiprocessing as mp
-
 from csv_logic import get_badcodes, get_csv_codes_iterator, stream_codes_as_csv
 from exel_logic import stream_codes_as_exel
 from file_select import select_file
@@ -26,10 +23,11 @@ def main():
             badcodes = get_badcodes(badcodes_path)
 
         shift, csv_iterator = get_csv_codes_iterator(good_codes_path, bad_codes=badcodes)
-        it1, it2 = itertools.tee(csv_iterator, 2)
 
-        stream_codes_as_csv(f"shift_{shift}_csv_codes_full.csv", it1)
-        stream_codes_as_exel(f"shift_{shift}_exel_codes_short.xlsx", it2)
+        with stream_codes_as_csv(f"shift_{shift}_csv_codes_full.csv") as csv, stream_codes_as_exel(f"shift_{shift}_exel_codes_short.xlsx") as exel:
+            for code in csv_iterator:
+                csv.writecode(code)
+                exel.writecode(code)
 
     except Exception as e:  # noqa: BLE001
         print(f"\033[31m\nОШИБКА!!!\n{e}\033[0m")

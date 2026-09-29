@@ -1,6 +1,11 @@
 import csv
 from collections.abc import Iterator
 
+def clean_code(raw_code: str) -> str:
+    code = raw_code.strip()
+    if len(code) >= 2 and code.startswith('"') and code.endswith('"'):
+        code = code[1:-1]
+    return code.replace('""', '"')
 
 def get_csv_codes_iterator(
     filepath: str,
@@ -10,45 +15,46 @@ def get_csv_codes_iterator(
 ) -> tuple[str, Iterator[str]]:
     """Построчно читает, очищает и возвращает коды из CSV-файла, пропуская bad_codes."""
 
-    if bad_codes is None:
-        bad_codes = set()
+    bad_codes = bad_codes or set()
 
-    def _create_iterator():
-        with open(filepath, mode="r", encoding="utf-8-sig", newline="") as file:
-            reader = csv.DictReader(file, delimiter=",")
+    file = open(filepath, mode="r", encoding="utf-8-sig", newline="")
+    reader = csv.DictReader(file, delimiter=",")
 
-            if not reader.fieldnames or fieldname not in reader.fieldnames:
-                raise ValueError(f"В файле {filepath} нет поля '{fieldname}'")
+    # Проверка наличия полей
+    if not reader.fieldnames:
+        file.close()
+        raise ValueError(f"Файл '{filepath}' пуст.")
 
-            for row in reader:
-                code = row.get(fieldname)
-                if not code:
-                    continue
+    if fieldname not in reader.fieldnames or fieldname_shift not in reader.fieldnames:
+        file.close()
+        raise ValueError(f"В файле отсутствуют обязательные поля: '{fieldname}' или '{fieldname_shift}'.")
 
-                code = code.strip()
+    # Из 1 строки достаем номер смены
+    first_row = next(reader, None)
+    if not first_row:
+        file.close()
+        raise ValueError(f"В файле '{filepath}' нет данных.")
 
-                #Снимаем внешние кавычки
-                if len(code) >= 2 and code.startswith('"') and code.endswith('"'):
-                    code = code[1:-1]
+    shift = first_row.get(fieldname_shift, "-1")
 
-                #Заменяем сдвоенные кавычки на одинарные
-                code = code.replace('""', '"')
+    def _create_iterator() -> Iterator[str]:
+        # Т.к мы уже прокрутили 1 итерацию когда доставали смену, из нее же надо достать код
+        if first_code := first_row.get(fieldname):
+            clean = clean_code(first_code)
 
-                if code and code not in bad_codes:
-                    yield code
+            if clean and clean not in bad_codes:
+                yield clean
 
-    with open(filepath, mode="r", encoding="utf-8-sig", newline="") as file:
-        reader = csv.DictReader(file, delimiter=",")
+        # Работа с другими кодами
+        for row in reader:
+            if code := row.get(fieldname, None):
+                clean = clean_code(code)
 
-        if not reader.fieldnames or fieldname_shift not in reader.fieldnames:
-            raise ValueError(f"В файле {filepath} нет поля '{fieldname_shift}'")
+                if clean and clean not in bad_codes:
+                    yield clean
 
-        first_row = next(reader, None)
-        if not first_row:
-            raise TypeError(f"В файле '{filepath}' нет строк")
-        
-        shift = str(first_row.get(fieldname_shift)).strip()
-        return shift, _create_iterator()
+    return shift, _create_iterator()
+
 
 
 
@@ -63,7 +69,22 @@ def get_badcodes(filepath: str) -> set[str]:
                 bad_codes.add(c_line)
     return bad_codes
 
-def stream_codes_as_csv(filename: str, codes_stream: Iterator[str]):
+class stream_codes_as_csv:
     """Записывает коды из генератора в CSV-файл."""
-    with open(filename, "w", encoding="utf-8-sig") as file:
-        file.writelines(f"{code}\n" for code in codes_stream if code)
+    def __init__(self, filename: str):
+        self.filename = filename
+        self._file = None
+
+    def __enter__(self):
+        self._file = open(self.filename, "w", encoding="utf-8-sig", newline="")
+        return self
+
+    def writecode(self, code: str):
+        if not self._file:
+            raise TypeError("Поток файла csv не открыт")
+        self._file.write(f"{code}\n")
+
+    def __exit__(self, exc_type, exc, tb):
+        if self._file and not self._file.closed:
+            self._file.close()
+        self._file = None
